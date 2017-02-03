@@ -30,13 +30,21 @@ db_2016 <- inner_join(pitches, atbats, by = c('num', 'gameday_link')) %>% filter
 
 # Now the only columns needed from this dataset are batter and b_height:
 
-batters_2016 <- db_2016 %>% select(batter,b_height) %>% distinct() %>% collect(n=Inf)
+batters_2016 <- db_2016 %>% select(batter,batter_name,b_height) %>% distinct() %>%
+  filter(!is.na(batter_name)) %>% collect(n=Inf)
 
 # Check that the number of unique batter ids is the number of rows (no batter with
 # multiple heights):
 
 nrow(batters_2016) == length(unique(batters_2016$batter))
 # TRUE
+
+# Need to remove the following batter ids (Pedro Strop, Chad Hinshaw, pitchers anyway
+# that crashes the scrape function and a missing ID):
+
+batters_2016 <- batters_2016 %>% filter(batter != 467008 & batter != 664058 & 
+                                        batter != 660168 & batter != 643364 &
+                                        batter != 607430)
 
 # Now for each batter in the batters_2016 dataframe,
 # need to call scrape_statcast_savant_batter() and 
@@ -51,7 +59,9 @@ pfx_statcast_list <- lapply(batters_2016$batter,
                                                                       batterid=x))
 
 
-
+# There was an error:
+error_2016 <- db_2016 %>% select(batter,batter_name) %>% filter(batter == 607430) %>% 
+  distinct () %>% collect(n=Inf)
 
 
 
